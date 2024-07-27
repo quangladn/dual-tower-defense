@@ -1,5 +1,4 @@
 PORT = 5555
-# SERVER = "192.168.100.13"
 SERVER = "localhost"
 BUFSIZE = 2048 * 4
 
