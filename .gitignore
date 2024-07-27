@@ -1,7 +1,4 @@
 asset/model1.0
-asset/model.piskel
-asset/model1.2.piskel
-asset/model1.3.piskel
-asset/model1.2.zip
+asset/in-process
 .venv
-src\env.py
+src/env.py
