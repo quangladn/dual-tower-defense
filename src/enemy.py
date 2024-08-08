@@ -40,10 +40,10 @@ class Enemy:
         Thread(target=self.remove_i_frame).start()
 
     def set_health(self, health, wave):
-        extra_health = round(wave / 10) ** 2 * 2
-        self.health = health + extra_health
-        self.max_health = health + extra_health
-        self.damage = self.health
+        extra_health = round(wave / 10) / 100
+        self.health = health + health * extra_health
+        self.max_health = health + health * extra_health
+        self.damage = int(self.health)
         self.valuable = round(self.health / 10) + 2
 
     def remove_i_frame(self):
@@ -131,14 +131,14 @@ class Enemy:
             self.color,
             hitbox,
         )
+        if self.isAttacked == True:
+            pygame.draw.rect(screen, (255, 255, 255), hitbox, 2)
 
         model = self.load_model()
         model_rect = pygame.Rect(0, 0, model.get_width(), model.get_height())
         model_rect.center = hitbox.center
         model_rect.bottom = hitbox.bottom
         screen.blit(model, (model_rect.x, model_rect.y))
-        if self.isAttacked == True:
-            pygame.draw.rect(screen, (255, 40, 40), hitbox, 2)
         start_point = (20, 720 - 60 * 10 - 20)
         if rect.collidepoint(mx - start_point[0], my - start_point[1]):
             font = pygame.font.SysFont("", 30)

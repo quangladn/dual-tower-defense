@@ -4,6 +4,7 @@ from player import Player
 from network import Network
 from tower import Tower
 from aoe_tower import Tower_AOE
+from farm_tower import Tower_Farm
 from piercing_tower import Tower_Piercing
 from env import *
 
@@ -12,19 +13,29 @@ pygame.init()
 G_SIZE_SCREEN = (1280, 720)
 G_FPS = 60
 L_run = True
-G_screen = pygame.display.set_mode(G_SIZE_SCREEN, pygame.SCALED | pygame.RESIZABLE)
+G_screen = pygame.display.set_mode(
+    G_SIZE_SCREEN, pygame.SCALED | pygame.RESIZABLE | pygame.DOUBLEBUF, 16
+)
+pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP])
+
 G_clock = pygame.time.Clock()
 
 font_s20 = pygame.font.SysFont("", 20, False)
 font_s30_bold = pygame.font.SysFont("", 30, True)
+font_s30 = pygame.font.SysFont("", 30, False)
 seguisym_font_s30 = pygame.font.Font(FONT_SOURCE + "\\seguisym.ttf", 30)
 font_s50_bold = pygame.font.SysFont("", 50, True)
 font_s50 = pygame.font.SysFont("", 50, False)
 
 START_POINT = (20, 720 - 60 * 10 - 20)
 
-tower_slot = [Tower, Tower_AOE, Tower_Piercing]
+tower_slot = [Tower, Tower_AOE, Tower_Piercing, Tower_Farm, Tower, Tower]
+tower_price = []
 picking = None
+
+for t in tower_slot:
+    data = t(-1, -1)
+    tower_price.append(data.price)
 
 
 def draw_map(screen, map_game):
@@ -104,7 +115,7 @@ def draw_tower_stat(screen, tower):
         y_pos = 0
         # emoji = ["🔼💀💦🔥🔦⏱❄⬆💥💤⏳⌛💸"]
         text = seguisym_font_s30.render(
-            f"level - {tower.level} 💸", True, (255, 255, 255)
+            f"level - {tower.level} [↗]", True, (255, 255, 255)
         )
         r = text.get_rect()
         r.center = (
@@ -116,7 +127,7 @@ def draw_tower_stat(screen, tower):
         y_pos += 30
 
         for k, v in tower.stat_show.items():
-            text_ = seguisym_font_s30.render(f"{k} - {v}", True, (255, 255, 255))
+            text_ = seguisym_font_s30.render(f"{k}: {v}", True, (255, 255, 255))
             r_ = text_.get_rect()
             screen.blit(
                 text_,
@@ -124,7 +135,7 @@ def draw_tower_stat(screen, tower):
             )
             y_pos += 30
         text = (
-            f"cost upgrade: {tower.cost}$"
+            f"Cost upgrade: {tower.cost}$"
             if tower.cost != "MAXED"
             else f"cost upgrade: MAXED"
         )
@@ -132,8 +143,107 @@ def draw_tower_stat(screen, tower):
         r_ = text_.get_rect()
         screen.blit(
             text_,
-            (START_POINT[0] + size_map[0] + 30, START_POINT[1] + 20 + y_pos),
+            (
+                START_POINT[0] + size_map[0] + 30,
+                START_POINT[1] + size_map[1] / 2 - r_.h - 15,
+            ),
         )
+
+
+def draw_pick_gui(screen):
+    size_map = (60 * 14, 60 * 10)
+    pygame.draw.rect(
+        screen,
+        (120, 120, 120),
+        (
+            START_POINT[0] + size_map[0] + 15,
+            START_POINT[1],
+            350,
+            size_map[1] / 2,
+        ),
+        border_radius=10,
+    )
+
+    start_point = (
+        START_POINT[0] + size_map[0] + 15,
+        START_POINT[1] + size_map[1] / 2 + 15,
+    )
+    pygame.draw.rect(
+        screen,
+        (120, 120, 120),
+        (
+            start_point[0],
+            start_point[1],
+            350,
+            size_map[1] / 2 - 15,
+        ),
+        border_radius=10,
+    )
+    padding = 15
+
+    inside_width = 350 - 2 * 15
+    inside_height = size_map[1] / 2 - 15 - 2 * 15
+    idx = 0
+    for i in range(2):
+        for j in range(3):
+            x = start_point[0] + padding / 2 + j * (inside_width / 3 + padding / 2)
+            y = start_point[1] + padding / 2 + i * (inside_height / 2 + padding / 2) + 5
+
+            pygame.draw.rect(
+                screen,
+                (140, 140, 140),
+                (
+                    x,
+                    y,
+                    inside_width / 3,
+                    inside_height / 2,
+                ),
+                border_radius=5,
+            )
+            pygame.draw.rect(
+                screen,
+                (150, 150, 150),
+                (
+                    x,
+                    y + inside_height / 2 / 2 + 30,
+                    inside_width / 3,
+                    inside_height / 2 - inside_height / 2 / 2 - 30,
+                ),
+                border_radius=5,
+            )
+            tower_data = tower_price[idx]
+            text = font_s30_bold.render(
+                f"{tower_data}$",
+                False,
+                (0, 0, 0),
+            )
+            r_ = text.get_rect()
+            # r1 = (x + inside_width / 3, y + inside_height / 2)
+            r1 = pygame.Rect(
+                x,
+                y + inside_height / 2 / 2 + 30,
+                inside_width / 3,
+                inside_height / 2 - inside_height / 2 / 2 - 30,
+            )
+            r_.center = r1.center
+
+            # screen.blit(text, (r1[0] - r_.w - 15, r1[1] - r_.h - 5))
+            screen.blit(text, (r_.x, r_.y))
+
+            if picking == idx:
+                pygame.draw.rect(
+                    screen,
+                    (255, 255, 255),
+                    (
+                        x,
+                        y,
+                        inside_width / 3,
+                        inside_height / 2,
+                    ),
+                    width=5,
+                    border_radius=5,
+                )
+            idx += 1
 
 
 def render(
@@ -154,6 +264,7 @@ def render(
     size_map = (60 * 14, 60 * 10)
     map_surface = pygame.Surface(size_map)
     draw_map(map_surface, map_game)
+    draw_pick_gui(screen)
     for enemy in enemys:
         enemy.render(map_surface)
     for tower in towers:
@@ -232,6 +343,8 @@ if __name__ == "__main__":
                     picking = 1
                 elif event.key == pygame.K_3:
                     picking = 2
+                elif event.key == pygame.K_4:
+                    picking = 3
 
         data = network.send(p1)
         if data:

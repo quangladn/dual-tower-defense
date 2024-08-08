@@ -43,7 +43,12 @@ map_game = [
     [-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2],
 ]
 route = []
-for i in range(-1, 54):
+
+route_ = []
+for i in map_game:
+    route_.extend(i)
+route_count = max(route_)
+for i in range(-1, route_count + 1):
     for col in range(10):
         for row in range(14):
             if map_game[col][row] == i:
@@ -134,7 +139,7 @@ enemys = []
 towers = [Tower(690, 310)]
 towers = []
 
-money = 200
+money = 200**10
 
 currentPlayer = 0
 disconnected = 0
@@ -147,7 +152,7 @@ def spawn_wave(wave_design: dict):
     can_spawn_wave = False
     for k in wave_design.keys():
         time_spawn = wave_design[k][0]
-        delay_time = wave_design[k][1] - 0.2
+        delay_time = wave_design[k][1] - 0.15 if wave_design[k][1] - 0.15 > 0 else 0.01
         # delay_time = 0.02
         if k == "mini":
             for i in range(time_spawn):
@@ -169,7 +174,7 @@ def spawn_wave(wave_design: dict):
             for i in range(time_spawn):
                 enemy = Enemy(route)
                 enemy.color = (100, 20, 100)
-                enemy.set_health(24, wave)
+                enemy.set_health(45, wave)
                 enemy.speed = 2
                 enemy.set_model(k)
                 enemys.append(enemy)
@@ -178,7 +183,7 @@ def spawn_wave(wave_design: dict):
             for i in range(time_spawn):
                 enemy = Enemy(route)
                 enemy.color = (255, 100, 20)
-                enemy.set_health(50, wave)
+                enemy.set_health(85, wave)
                 enemy.speed = 2
                 enemy.set_model(k)
                 enemys.append(enemy)
@@ -187,7 +192,7 @@ def spawn_wave(wave_design: dict):
             for i in range(time_spawn):
                 enemy = Enemy(route)
                 enemy.color = (200, 200, 20)
-                enemy.set_health(65, wave)
+                enemy.set_health(100, wave)
                 enemy.speed = 4
                 enemy.set_model(k)
                 enemys.append(enemy)
@@ -205,7 +210,7 @@ def spawn_wave(wave_design: dict):
             for i in range(time_spawn):
                 enemy = Enemy(route)
                 enemy.color = (200, 200, 255)
-                enemy.set_health(100, wave)
+                enemy.set_health(150, wave)
                 enemy.speed = 7
                 enemy.set_model(k)
                 enemys.append(enemy)
@@ -239,10 +244,11 @@ def threaded_client(conn, player_idx):
                     money -= towers[t].upgrade(money)
 
                 if can_spawn_wave == True:
-                    for w in wave_design:
-                        if w["wave"] >= wave:
-                            Thread(target=spawn_wave, args=(w["enemy"],)).start()
-                            break
+                    # for w in wave_design:
+                    if wave < len(wave_design):
+                        Thread(
+                            target=spawn_wave, args=(wave_design[wave]["enemy"],)
+                        ).start()
 
                 for tower in towers:
                     if tower.price != -1:
@@ -251,9 +257,10 @@ def threaded_client(conn, player_idx):
                         else:
                             money -= tower.price
                             tower.price = -1
+
                     if tower.canAttack == False:
                         continue
-                    tower.attack(enemys)
+                    money += tower.attack(enemys)
 
                 for enemy in enemys:
                     enemy.update()
@@ -266,11 +273,9 @@ def threaded_client(conn, player_idx):
                 if player_idx == HOST_PLAYER:
                     players[1].health = house_health
                     reply = [players[1], enemys, towers, wave, money]
-                    print(123)
                 else:
                     players[0].health = house_health
                     reply = [players[0], enemys, towers, wave, money]
-                    print(123)
             conn.sendall(pickle.dumps(reply))
         except Exception as e:
             print(e)

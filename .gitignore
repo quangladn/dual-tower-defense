@@ -1,3 +1,4 @@
 asset/model1.0
 asset/in-process
 .venv
+src/server_setting.py

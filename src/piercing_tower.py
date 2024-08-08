@@ -14,6 +14,7 @@ class Tower_Piercing(tower.Tower):
         self.angle = (0, 0)
         self.D_hitbox = (0, 0, 0, 0)
         self.color = (100, 255, 100)
+        self.price = 350
 
     def render(self, screen):
         super().render(screen)
@@ -39,17 +40,6 @@ class Tower_Piercing(tower.Tower):
                     attacked_enemy += 1
                     enemy.take_damage(self.damage)
                 elif attacked_enemy > 0:
-                    print(
-                        enemy.get_rect().clipline(
-                            (
-                                (self.x, self.y),
-                                (
-                                    self.x + self.angle[0] * self.range_attack,
-                                    self.y + self.angle[1] * self.range_attack,
-                                ),
-                            )
-                        )
-                    )
                     if enemy.get_rect().clipline(
                         (
                             (self.x, self.y),
@@ -65,3 +55,4 @@ class Tower_Piercing(tower.Tower):
 
         self.canAttack = False
         Thread(target=self.countdown_attack).start()
+        return 0

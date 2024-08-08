@@ -26,9 +26,9 @@ class Network:
         out = None
         self.client.send(pickle.dumps(data))
         inp = self.client.recv(BUFSIZE)
-        # try:
-        out = pickle.loads(inp)
-        # except:
-        #     out = None
-        #     print("1231231231203120-3")
-        return out
+        try:
+            out = pickle.loads(inp)
+            return out
+        except:
+            # wait until have data
+            return self.send(data)

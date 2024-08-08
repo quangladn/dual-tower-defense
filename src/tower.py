@@ -42,8 +42,10 @@ class Tower:
             "countdown": self.countdown_time,
             "range": self.range_attack,
         }
-        self.max_level = len(self.upgrade_list) + 1
+        self.max_level = len(self.upgrade_list)
         self.price = 100
+
+        self.special_tower = 0
         # Thread(target=self.countdown_attack).start()
 
     def get_distance(self, enemy):
@@ -69,8 +71,8 @@ class Tower:
                 enemy.take_damage(self.damage)
                 self.canAttack = False
                 Thread(target=self.countdown_attack).start()
-                return 1
-            # print(22)
+                break
+        return 0
 
     def check_collide(self, player):
         local_rect = pygame.Rect(
@@ -100,20 +102,30 @@ class Tower:
             self.stat_show[k] = stat[k]
 
     def set_stat(self, stat):
-        self.damage = stat["damage"]
-        self.countdown_time = stat["countdown"]
-        self.range_attack = stat["range"]
+        if self.special_tower == 0:
+            self.damage = stat["damage"]
+            self.countdown_time = stat["countdown"]
+            self.range_attack = stat["range"]
+        elif self.special_tower == 1:
+            self.damage = stat["money"]
+            self.countdown_time = stat["countdown"]
+
         self.set_show_stat(stat)
 
     def upgrade(self, money):
-        if self.level >= self.max_level:
+        if self.level > self.max_level:
             return 0
         stat = self.upgrade_list[self.level - 1]
         if money < stat["cost"]:
             return 0
-        self.damage += stat["damage"]
-        self.countdown_time += stat["countdown"]
-        self.range_attack += stat["range"]
+
+        if self.special_tower == 0:
+            self.damage += stat["damage"]
+            self.countdown_time += stat["countdown"]
+            self.range_attack += stat["range"]
+        elif self.special_tower == 1:
+            self.damage += stat["money"]
+            self.countdown_time += stat["countdown"]
         self.update_show_stat(stat)
         try:
             self.cost = self.upgrade_list[self.level]["cost"]
@@ -125,3 +137,7 @@ class Tower:
 
     def get_rect(self):
         return self.self_hitbox
+
+    def update_upgrade_list(self):
+        self.max_level = len(self.upgrade_list)
+        self.cost = self.upgrade_list[0]["cost"]
